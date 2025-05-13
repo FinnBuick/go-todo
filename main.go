@@ -1,54 +1,66 @@
 package main
 
 import (
-	"flag"
 	"fmt"
+	"github.com/rivo/tview"
 	"go-todo/todo"
 )
 
-// Commands
-// list - lists the existing todos
-// add "Buy milk" - adds a todo
-// done - marks a todos as completed
+const file = "todos.json"
 
 func main() {
-	add := flag.String("add", "", "Task to add")
-	list := flag.Bool("list", false, "List tasks")
-	done := flag.Int("done", -1, "Mark task as done")
-	flag.Parse()
 
-	const file = "todos.json"
 	tasks, err := todo.LoadTasks(file)
 	if err != nil {
 		fmt.Println("Error loading task:", err)
 		return
 	}
 
-	switch {
-	case *add != "":
-		fmt.Println(tasks)
-		t := todo.Task{ID: len(tasks) + 1, Text: *add}
-		tasks = append(tasks, t)
-		todo.SaveTasks(tasks, file)
-		fmt.Println("Added task:", t.Text)
-	case *list:
+	app := tview.NewApplication()
+
+	pages := tview.NewPages()
+
+	// Create list to display tasks
+	todoList := tview.NewList().
+		SetHighlightFullLine(true).
+		ShowSecondaryText(false)
+
+	refreshTodoList := func(list *tview.List, tasks []todo.Task, app *tview.Application, pages *tview.Pages) {
+		list.Clear()
+
 		for _, t := range tasks {
-			status := ""
+			status := "[ ] "
 			if t.Completed {
-				status = "x"
+				status = "[x] "
 			}
-			fmt.Printf("[%s] %d: %s\n", status, t.ID, t.Text)
+
+			id := t.ID
+			list.AddItem(fmt.Sprintf("%s%d: %s", status, id, t.Text), "", rune(0), nil)
 		}
-	case *done > 0:
-		for i, t := range tasks {
-			if t.ID == *done {
-				tasks[i].Completed = true
-				todo.SaveTasks(tasks, file)
-				fmt.Println("Marked as done:", t.Text)
-				break
-			}
-		}
-	default:
-		fmt.Println("Usage: -add \"task\" | -list | -done N")
+
+		list.AddItem("Quit", "Press to exit", 'q', func() {
+			app.Stop()
+		})
+	}
+
+	// Create a help text view
+	helpText := tview.NewTextView().
+		SetText("Space: Toggle completed | Delete: Remove task | a: Add new | q: Quit").
+		SetTextAlign(tview.AlignCenter)
+
+	// Create the main layout
+	mainLayout := tview.NewFlex().
+		SetDirection(tview.FlexRow).
+		AddItem(todoList, 0, 1, true).
+		AddItem(helpText, 1, 0, false)
+
+	pages.AddPage("list", mainLayout, true, true)
+
+	// initialise the list
+	refreshTodoList(todoList, tasks, app, pages)
+
+	// Run the application
+	if err := app.SetRoot(pages, true).EnableMouse(true).Run(); err != nil {
+		panic(err)
 	}
 }

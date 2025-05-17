@@ -22,7 +22,6 @@ func main() {
 
 	pages := tview.NewPages()
 
-	// Create list to display tasks
 	todoList := tview.NewList().
 		SetHighlightFullLine(true).
 		ShowSecondaryText(false)
@@ -45,12 +44,10 @@ func main() {
 		})
 	}
 
-	// Create a help text view
 	helpText := tview.NewTextView().
 		SetText("Space: Toggle completed | Delete: Remove task | a: Add new | q: Quit").
 		SetTextAlign(tview.AlignCenter)
 
-	// Create the main layout
 	mainLayout := tview.NewFlex().
 		SetDirection(tview.FlexRow).
 		AddItem(todoList, 0, 1, true).
@@ -58,26 +55,38 @@ func main() {
 
 	pages.AddPage("list", mainLayout, true, true)
 
-	// initialise the list
 	refreshTodoList(todoList, tasks, app, pages)
 
-	// Key handler
 	todoList.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
 		switch event.Rune() {
 		case ' ':
 			index := todoList.GetCurrentItem()
 			if index >= len(tasks) {
-				return nil // "Quit" item
+				return nil
 			}
 			tasks[index].Toggle()
-			todo.SaveTasks(tasks, file) // Save changes
+			todo.SaveTasks(tasks, file)
 			refreshTodoList(todoList, tasks, app, pages)
 			return nil
+
+		case 'j':
+			current := todoList.GetCurrentItem()
+			if current < todoList.GetItemCount()-2 {
+				todoList.SetCurrentItem(current + 1)
+			}
+			return nil
+
+		case 'k':
+			current := todoList.GetCurrentItem()
+			if current > 0 {
+				todoList.SetCurrentItem(current - 1)
+			}
+			return nil
+
 		}
 		return event
 	})
 
-	// Run the application
 	if err := app.SetRoot(pages, true).EnableMouse(true).Run(); err != nil {
 		panic(err)
 	}

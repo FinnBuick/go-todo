@@ -2,8 +2,10 @@ package main
 
 import (
 	"fmt"
-	"github.com/rivo/tview"
 	"go-todo/todo"
+
+	"github.com/gdamore/tcell/v2"
+	"github.com/rivo/tview"
 )
 
 const file = "todos.json"
@@ -58,6 +60,22 @@ func main() {
 
 	// initialise the list
 	refreshTodoList(todoList, tasks, app, pages)
+
+	// Key handler
+	todoList.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
+		switch event.Rune() {
+		case ' ':
+			index := todoList.GetCurrentItem()
+			if index >= len(tasks) {
+				return nil // "Quit" item
+			}
+			tasks[index].Toggle()
+			todo.SaveTasks(tasks, file) // Save changes
+			refreshTodoList(todoList, tasks, app, pages)
+			return nil
+		}
+		return event
+	})
 
 	// Run the application
 	if err := app.SetRoot(pages, true).EnableMouse(true).Run(); err != nil {

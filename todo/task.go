@@ -5,3 +5,8 @@ type Task struct {
 	Text      string `json:"text"`
 	Completed bool   `json:"completed"`
 }
+
+func (t *Task) Toggle() {
+	temp := t.Completed
+	t.Completed = !temp
+}

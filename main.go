@@ -27,6 +27,8 @@ func main() {
 		ShowSecondaryText(false)
 
 	refreshTodoList := func(list *tview.List, tasks []todo.Task, app *tview.Application, pages *tview.Pages) {
+		currentIndex := list.GetCurrentItem()
+
 		list.Clear()
 
 		for _, t := range tasks {
@@ -36,12 +38,19 @@ func main() {
 			}
 
 			id := t.ID
-			list.AddItem(fmt.Sprintf("%s%d: %s", status, id, t.Text), "", rune(0), nil)
+			escapedStatus := tview.Escape(status)
+			list.AddItem(fmt.Sprintf("%s%d: %s", escapedStatus, id, t.Text), "", rune(0), nil)
 		}
 
 		list.AddItem("Quit", "Press to exit", 'q', func() {
 			app.Stop()
 		})
+
+		if currentIndex >= 0 && currentIndex < list.GetItemCount() {
+			list.SetCurrentItem(currentIndex)
+		} else if list.GetItemCount() > 0 {
+			list.SetCurrentItem(0)
+		}
 	}
 
 	helpText := tview.NewTextView().

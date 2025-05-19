@@ -10,93 +10,118 @@ import (
 
 const file = "todos.json"
 
-func main() {
+type TodoList struct {
+	app      *tview.Application
+	pages    *tview.Pages
+	list     *tview.List
+	tasks    []todo.Task
+	helpText *tview.TextView
+	form     *tview.Form
+}
 
+func newTodoList() *TodoList {
+	return &TodoList{
+		app:   tview.NewApplication(),
+		pages: tview.NewPages(),
+		list:  tview.NewList().ShowSecondaryText(false),
+		helpText: tview.NewTextView().
+			SetText("Space: Toggle completed | Delete: Remove task | a: Add new | q: Quit").
+			SetTextAlign(tview.AlignCenter),
+		form: tview.NewForm(),
+	}
+}
+
+func (t *TodoList) loadTasks() error {
 	tasks, err := todo.LoadTasks(file)
 	if err != nil {
-		fmt.Println("Error loading task:", err)
-		return
+		return err
 	}
+	t.tasks = tasks
+	return nil
+}
 
-	app := tview.NewApplication()
+func (t *TodoList) refreshTodoList() {
+	currentIndex := t.list.GetCurrentItem()
 
-	pages := tview.NewPages()
+	t.list.Clear()
 
-	todoList := tview.NewList().
-		SetHighlightFullLine(true).
-		ShowSecondaryText(false)
-
-	refreshTodoList := func(list *tview.List, tasks []todo.Task, app *tview.Application, pages *tview.Pages) {
-		currentIndex := list.GetCurrentItem()
-
-		list.Clear()
-
-		for _, t := range tasks {
-			status := "[ ] "
-			if t.Completed {
-				status = "[x] "
-			}
-
-			id := t.ID
-			escapedStatus := tview.Escape(status)
-			list.AddItem(fmt.Sprintf("%s%d: %s", escapedStatus, id, t.Text), "", rune(0), nil)
+	for _, task := range t.tasks {
+		status := "[ ] "
+		if task.Completed {
+			status = "[x] "
 		}
 
-		list.AddItem("Quit", "Press to exit", 'q', func() {
-			app.Stop()
-		})
-
-		if currentIndex >= 0 && currentIndex < list.GetItemCount() {
-			list.SetCurrentItem(currentIndex)
-		} else if list.GetItemCount() > 0 {
-			list.SetCurrentItem(0)
-		}
+		id := task.ID
+		escapedStatus := tview.Escape(status)
+		t.list.AddItem(fmt.Sprintf("%s%d: %s", escapedStatus, id, task.Text), "", rune(0), nil)
 	}
 
-	helpText := tview.NewTextView().
-		SetText("Space: Toggle completed | Delete: Remove task | a: Add new | q: Quit").
-		SetTextAlign(tview.AlignCenter)
+	t.list.AddItem("Quit", "Press to exit", 'q', func() {
+		t.app.Stop()
+	})
 
-	mainLayout := tview.NewFlex().
-		SetDirection(tview.FlexRow).
-		AddItem(todoList, 0, 1, true).
-		AddItem(helpText, 1, 0, false)
+	if currentIndex >= 0 && currentIndex < t.list.GetItemCount() {
+		t.list.SetCurrentItem(currentIndex)
+	} else if t.list.GetItemCount() > 0 {
+		t.list.SetCurrentItem(0)
+	}
+}
 
-	pages.AddPage("list", mainLayout, true, true)
-
-	refreshTodoList(todoList, tasks, app, pages)
-
-	todoList.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
+func (t *TodoList) setupKeyBindings() {
+	t.list.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
 		switch event.Rune() {
 		case ' ':
-			index := todoList.GetCurrentItem()
-			if index >= len(tasks) {
+			index := t.list.GetCurrentItem()
+			if index >= len(t.tasks) {
 				return nil
 			}
-			tasks[index].Toggle()
-			todo.SaveTasks(tasks, file)
-			refreshTodoList(todoList, tasks, app, pages)
+			t.tasks[index].Toggle()
+			todo.SaveTasks(t.tasks, file)
+			t.refreshTodoList()
 			return nil
-
 		case 'j':
-			current := todoList.GetCurrentItem()
-			if current < todoList.GetItemCount()-2 {
-				todoList.SetCurrentItem(current + 1)
+			current := t.list.GetCurrentItem()
+			if current < t.list.GetItemCount()-2 {
+				t.list.SetCurrentItem(current + 1)
 			}
 			return nil
-
 		case 'k':
-			current := todoList.GetCurrentItem()
+			current := t.list.GetCurrentItem()
 			if current > 0 {
-				todoList.SetCurrentItem(current - 1)
+				t.list.SetCurrentItem(current - 1)
 			}
 			return nil
 
 		}
 		return event
 	})
+}
 
-	if err := app.SetRoot(pages, true).EnableMouse(true).Run(); err != nil {
+func (t *TodoList) setupLayout() {
+	mainLayout := tview.NewFlex().
+		SetDirection(tview.FlexRow).
+		AddItem(t.list, 0, 1, true).
+		AddItem(t.helpText, 1, 0, false)
+
+	t.pages.AddPage("list", mainLayout, true, true)
+}
+
+func (t *TodoList) run() error {
+	t.setupLayout()
+	t.setupKeyBindings()
+	t.refreshTodoList()
+	return t.app.SetRoot(t.pages, true).EnableMouse(true).Run()
+}
+
+func main() {
+	app := newTodoList()
+
+	if err := app.loadTasks(); err != nil {
+		fmt.Println("Error loading tasks:", err)
+		return
+	}
+
+	if err := app.run(); err != nil {
 		panic(err)
 	}
 }

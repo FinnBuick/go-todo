@@ -6,6 +6,14 @@ type Task struct {
 	Completed bool   `json:"completed"`
 }
 
+func NewTask(text string, nextID int) Task {
+	return Task{
+		ID:        nextID,
+		Text:      text,
+		Completed: false,
+	}
+}
+
 func (t *Task) Toggle() {
 	temp := t.Completed
 	t.Completed = !temp

@@ -29,17 +29,18 @@ func (c *AppController) Start() error {
 }
 
 func (c *AppController) loadAndDisplayTasks() error {
-	tasks, err := c.store.LoadTasks()
+	tasks, err := c.store.GetTasks()
 	if err != nil {
 		log.Printf("Error loading tasks: %v", err)
 		c.ui.ShowError(fmt.Sprintf("Failed to load tasks: %v", err))
-		return
+		return err
 	}
 	c.ui.RefreshList(tasks)
+	return nil
 }
 
 func (c *AppController) HandleAddTask() {
-	description := c.ui.GetInputTask()
+	description := c.ui.GetInputText()
 	if description == "" {
 		c.ui.ShowError(fmt.Sprintf("Task description cannot be empty"))
 		return

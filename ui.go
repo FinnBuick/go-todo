@@ -49,7 +49,7 @@ func NewUI(controller *AppController) *UI {
 
 	ui.pages = tview.NewPages().AddPage("main", ui.flex, true, true)
 
-	ui.setupKeyBindings()
+	ui.setupKeybindings()
 
 	return ui
 }

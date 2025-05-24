@@ -1,20 +1,24 @@
-package todo
+package main
 
 import (
 	"encoding/json"
 	"os"
 )
 
-func SaveTasks(tasks []Task, filename string) error {
+type Store struct {
+	filename string
+}
+
+func (c *Store) SaveTasks(tasks []Task) error {
 	data, err := json.MarshalIndent(tasks, "", "  ")
 	if err != nil {
 		return err
 	}
-	return os.WriteFile(filename, data, 0644)
+	return os.WriteFile(s.filename, data, 0644)
 }
 
-func LoadTasks(filename string) ([]Task, error) {
-	data, err := os.ReadFile(filename)
+func (s *Store) LoadTasks() ([]Task, error) {
+	data, err := os.ReadFile(s.filename)
 	if err != nil {
 		if os.IsNotExist(err) {
 			return []Task{}, nil

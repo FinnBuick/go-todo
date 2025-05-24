@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"go-todo/todo"
 	"slices"
 	"strings"
 
@@ -13,7 +12,7 @@ import (
 const file = "todos.json"
 
 type TodoList struct {
-	tasks          []todo.Task
+	tasks          []Task
 	app            *tview.Application
 	mainFlex       *tview.Flex
 	list           *tview.List
@@ -36,7 +35,7 @@ func newTodoList() *TodoList {
 }
 
 func (t *TodoList) loadTasks() error {
-	tasks, err := todo.LoadTasks(file)
+	tasks, err := LoadTasks(file)
 	if err != nil {
 		return err
 	}
@@ -49,12 +48,12 @@ func (t *TodoList) refreshTodoList() {
 	t.list.Clear()
 	for _, task := range t.tasks {
 		status := "[ ] "
-		if task.Completed {
+		if task.Done {
 			status = "[x] "
 		}
 		id := task.ID
 		escapedStatus := tview.Escape(status)
-		t.list.AddItem(fmt.Sprintf("%s%d: %s", escapedStatus, id, task.Text), "", rune(0), nil)
+		t.list.AddItem(fmt.Sprintf("%s%d: %s", escapedStatus, id, task.Description), "", rune(0), nil)
 	}
 	t.list.AddItem("Quit", "Press to exit", 'q', func() {
 		t.app.Stop()
@@ -79,10 +78,10 @@ func (t *TodoList) addTask(text string) {
 		}
 	}
 
-	newTask := todo.NewTask(text, nextID)
+	newTask := NewTask(text, nextID)
 
 	t.tasks = append(t.tasks, newTask)
-	todo.SaveTasks(t.tasks, file)
+	SaveTasks(t.tasks, file)
 	t.refreshTodoList()
 }
 
@@ -92,7 +91,7 @@ func (t *TodoList) deleteCurrentTask() {
 		return
 	}
 	t.tasks = slices.Delete(t.tasks, index, index+1)
-	todo.SaveTasks(t.tasks, file)
+	SaveTasks(t.tasks, file)
 	t.refreshTodoList()
 }
 
@@ -130,7 +129,7 @@ func (t *TodoList) setupKeyBindings() {
 				return nil
 			}
 			t.tasks[index].Toggle()
-			todo.SaveTasks(t.tasks, file)
+			SaveTasks(t.tasks, file)
 			t.refreshTodoList()
 			return nil
 		case 'j':

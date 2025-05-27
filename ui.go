@@ -21,7 +21,7 @@ type UI struct {
 }
 
 const helpText = `[yellow]Controls:
-[green]Tab:[white] Cycle Focus | [green]Enter (in list):[white] Toggle Done | [green]d (in list):[white] Delete
+[green]Tab (or h and l):[white] Cycle Focus | [green]Enter (in list):[white] Toggle Done | [green]d (in list):[white] Delete
 [green]Enter (in input):[white] Add Task | [green]Esc (in input):[white] Focus List | [green]q:[white] Quit`
 
 func NewUI(controller *AppController) *UI {
@@ -74,7 +74,7 @@ func (ui *UI) RefreshList(tasks []Task) {
 	}
 
 	for _, task := range tasks {
-		prefix := " [ ] "
+		prefix := "[ ] "
 		if task.Done {
 			prefix = "[lime][✔][white] "
 		}
@@ -165,6 +165,19 @@ func (ui *UI) setupKeybindings() {
 			case 'd':
 				ui.controller.HandleDeleteTask()
 				return nil
+			case 'j':
+				index := ui.list.GetCurrentItem()
+				if index < ui.list.GetItemCount()-1 {
+					ui.list.SetCurrentItem(index + 1)
+				}
+				return nil
+			case 'k':
+				index := ui.list.GetCurrentItem()
+				if index > 0 {
+					ui.list.SetCurrentItem(index - 1)
+				}
+				return nil
+
 			}
 		}
 		return event
@@ -203,8 +216,23 @@ func (ui *UI) setupKeybindings() {
 			}
 			return nil
 		case tcell.KeyRune:
-			if event.Rune() == 'q' {
+			switch event.Rune() {
+			case 'q':
 				ui.controller.HandleQuit()
+				return nil
+			case 'h':
+				if ui.input.HasFocus() {
+					ui.FocusList()
+				} else {
+					ui.FocusInput()
+				}
+				return nil
+			case 'l':
+				if ui.input.HasFocus() {
+					ui.FocusList()
+				} else {
+					ui.FocusInput()
+				}
 				return nil
 			}
 		}

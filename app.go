@@ -40,7 +40,6 @@ func (c *AppController) loadAndDisplayTasks() error {
 	}
 	log.Printf("Retrieved %d tasks, refreshing UI list...", len(tasks))
 	c.ui.RefreshList(tasks)
-	log.Println("UI list refreshed successfully")
 	return nil
 }
 

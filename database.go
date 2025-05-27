@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"log"
 	"path/filepath"
+
+	_ "github.com/mattn/go-sqlite3" // SQLite driver
 )
 
 const dbFileName = "tasks.db"
@@ -28,8 +30,8 @@ func NewStore() (*Store, error) {
 
 	createTableSQL := `
 	CREATE TABLE IF NOT EXISTS tasks (
-		id INTEGER PRIMARY KEY AUTOINCREMENT
-		description TEXT NOT NULL
+		id INTEGER PRIMARY KEY AUTOINCREMENT,
+		description TEXT NOT NULL,
 		done INTEGER DEFAULT 0 CHECK(done in (0,1))
 	);`
 	if _, err = d.Exec(createTableSQL); err != nil {
@@ -78,7 +80,7 @@ func (s *Store) AddTask(description string) (int64, error) {
 	}
 	id, err := res.LastInsertId()
 	if err != nil {
-		fmt.Errorf("getting last insert id: %w", err)
+		return 0, fmt.Errorf("getting last insert id: %w", err)
 	}
 	return id, nil
 }
@@ -101,7 +103,7 @@ func (s *Store) ToggleTaskStatus(id int) error {
 }
 
 func (s *Store) DeleteTask(id int) error {
-	res, err := s.db.Exec("DELETE FROM task WHERE id = ?", id)
+	res, err := s.db.Exec("DELETE FROM tasks WHERE id = ?", id)
 	if err != nil {
 		return fmt.Errorf("deleting task: %w", err)
 	}

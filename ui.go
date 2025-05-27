@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"strconv"
 	"strings"
 
@@ -55,7 +56,18 @@ func NewUI(controller *AppController) *UI {
 }
 
 func (ui *UI) Run() error {
-	return ui.app.SetRoot(ui.pages, true).EnableMouse(true).Run()
+	log.Println("Setting root and enabling mouse...")
+	ui.app.SetRoot(ui.pages, true).EnableMouse(true)
+	log.Println("Starting tview application...")
+	
+	// Add error handling for screen initialization
+	defer func() {
+		if r := recover(); r != nil {
+			log.Printf("Recovered from panic in tview: %v", r)
+		}
+	}()
+	
+	return ui.app.Run()
 }
 
 func (ui *UI) Stop() {
@@ -63,16 +75,21 @@ func (ui *UI) Stop() {
 }
 
 func (ui *UI) RefreshList(tasks []Task) {
+	log.Printf("RefreshList called with %d tasks", len(tasks))
 	currentSelection := ui.list.GetCurrentItem()
 	ui.list.Clear()
 
 	if len(tasks) == 0 {
+		log.Println("No tasks found, adding placeholder item")
 		ui.list.AddItem(
 			"No tasks yet!", "Press Tab then Enter in input field to add one.", 0, nil)
+		log.Println("About to call ui.app.Draw()")
 		ui.app.Draw()
+		log.Println("ui.app.Draw() completed successfully")
 		return
 	}
 
+	log.Printf("Adding %d task items to list", len(tasks))
 	for _, task := range tasks {
 		prefix := " [ ] "
 		if task.Done {
@@ -84,12 +101,14 @@ func (ui *UI) RefreshList(tasks []Task) {
 		})
 	}
 
-	if currentSelection >= 0 && currentSelection < ui.list.GetCurrentItem() {
+	if currentSelection >= 0 && currentSelection < ui.list.GetItemCount() {
 		ui.list.SetCurrentItem(currentSelection)
-	} else if ui.list.GetCurrentItem() > 0 {
+	} else if ui.list.GetItemCount() > 0 {
 		ui.list.SetCurrentItem(0)
 	}
+	log.Println("Calling ui.app.Draw()")
 	ui.app.Draw()
+	log.Println("RefreshList completed")
 }
 
 func (ui *UI) GetSelectedTaskID() (int, bool) {

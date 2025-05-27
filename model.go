@@ -1,9 +1,9 @@
 package main
 
 type Task struct {
-	ID          int    `json:"id"`
-	Description string `json:"text"`
-	Done        bool   `json:"completed"`
+	ID          int
+	Description string
+	Done        bool
 }
 
 func NewTask(text string, nextID int) Task {

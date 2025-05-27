@@ -24,18 +24,23 @@ func (c *AppController) Start() error {
 	if c.ui == nil {
 		return fmt.Errorf("UI not initialised for controller")
 	}
+	log.Println("Loading and displaying tasks...")
 	c.loadAndDisplayTasks()
+	log.Println("Starting UI...")
 	return c.ui.Run()
 }
 
 func (c *AppController) loadAndDisplayTasks() error {
+	log.Println("Getting tasks from store...")
 	tasks, err := c.store.GetTasks()
 	if err != nil {
 		log.Printf("Error loading tasks: %v", err)
 		c.ui.ShowError(fmt.Sprintf("Failed to load tasks: %v", err))
 		return err
 	}
+	log.Printf("Retrieved %d tasks, refreshing UI list...", len(tasks))
 	c.ui.RefreshList(tasks)
+	log.Println("UI list refreshed successfully")
 	return nil
 }
 

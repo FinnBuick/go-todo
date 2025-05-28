@@ -5,6 +5,8 @@ import (
 	"strconv"
 	"strings"
 
+	"go-todo/internal/models"
+
 	"github.com/gdamore/tcell/v2"
 	"github.com/rivo/tview"
 )
@@ -21,7 +23,7 @@ type UI struct {
 }
 
 const helpText = `[yellow]Controls:
-[green]Tab (or h and l):[white] Cycle Focus | [green]Enter (in list):[white] Toggle Done | [green]d (in list):[white] Delete
+[green]Tab:[white] Cycle Focus | [green]Enter (in list):[white] Toggle Done | [green]d (in list):[white] Delete
 [green]Enter (in input):[white] Add Task | [green]Esc (in input):[white] Focus List | [green]q:[white] Quit`
 
 func NewUI(controller *AppController) *UI {
@@ -219,20 +221,6 @@ func (ui *UI) setupKeybindings() {
 			switch event.Rune() {
 			case 'q':
 				ui.controller.HandleQuit()
-				return nil
-			case 'h':
-				if ui.input.HasFocus() {
-					ui.FocusList()
-				} else {
-					ui.FocusInput()
-				}
-				return nil
-			case 'l':
-				if ui.input.HasFocus() {
-					ui.FocusList()
-				} else {
-					ui.FocusInput()
-				}
 				return nil
 			}
 		}

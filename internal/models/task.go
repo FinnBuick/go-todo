@@ -13,8 +13,3 @@ func NewTask(text string, nextID int) Task {
 		Done:        false,
 	}
 }
-
-func (t *Task) Toggle() {
-	temp := t.Done
-	t.Done = !temp
-}

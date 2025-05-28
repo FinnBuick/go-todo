@@ -1,4 +1,4 @@
-package main
+package storage
 
 import (
 	"database/sql"
@@ -6,6 +6,7 @@ import (
 	"log"
 	"path/filepath"
 
+	"go-todo/internal/models"
 	_ "github.com/mattn/go-sqlite3" // SQLite driver
 )
 
@@ -50,16 +51,16 @@ func (s *Store) Close() {
 	}
 }
 
-func (s *Store) GetTasks() ([]Task, error) {
+func (s *Store) GetTasks() ([]models.Task, error) {
 	rows, err := s.db.Query("SELECT id, description, done FROM tasks ORDER BY id ASC")
 	if err != nil {
 		return nil, fmt.Errorf("querying tasks: %w", err)
 	}
 	defer rows.Close()
 
-	var tasks []Task
+	var tasks []models.Task
 	for rows.Next() {
-		var t Task
+		var t models.Task
 		var doneInt int
 		if err := rows.Scan(&t.ID, &t.Description, &doneInt); err != nil {
 			return nil, fmt.Errorf("scanning task row: %w", err)

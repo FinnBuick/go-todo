@@ -1,4 +1,4 @@
-package main
+package ui
 
 import (
 	"fmt"
@@ -19,14 +19,21 @@ type UI struct {
 	pages   *tview.Pages
 	flex    *tview.Flex
 
-	controller *AppController
+	controller AppController
+}
+
+type AppController interface {
+	HandleAddTask()
+	HandleToggleTask()
+	HandleDeleteTask()
+	HandleQuit()
 }
 
 const helpText = `[yellow]Controls:
 [green]Tab:[white] Cycle Focus | [green]Enter (in list):[white] Toggle Done | [green]d (in list):[white] Delete
 [green]Enter (in input):[white] Add Task | [green]Esc (in input):[white] Focus List | [green]q:[white] Quit`
 
-func NewUI(controller *AppController) *UI {
+func NewUI(controller AppController) *UI {
 	ui := &UI{
 		app:        tview.NewApplication(),
 		controller: controller,
@@ -65,7 +72,7 @@ func (ui *UI) Stop() {
 	ui.app.Stop()
 }
 
-func (ui *UI) RefreshList(tasks []Task) {
+func (ui *UI) RefreshList(tasks []models.Task) {
 	currentSelection := ui.list.GetCurrentItem()
 	ui.list.Clear()
 
@@ -137,6 +144,10 @@ func (ui *UI) ShowConfirmation(message string, onConfirm func()) {
 			ui.app.SetFocus(ui.list)
 		})
 	ui.pages.AddPage("confirmModal", modal, true, true)
+}
+
+func (ui *UI) GetItemCount() int {
+	return ui.list.GetItemCount()
 }
 
 func (ui *UI) ShowError(message string) {

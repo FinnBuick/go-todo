@@ -1,22 +1,46 @@
-package main
+package controller
 
 import (
 	"fmt"
 	"log"
+
+	"go-todo/internal/models"
 )
 
 type AppController struct {
-	store *Store
-	ui    *UI
+	store Store
+	ui    UI
 }
 
-func NewAppController(store *Store) *AppController {
+type Store interface {
+	GetTasks() ([]models.Task, error)
+	AddTask(description string) (int64, error)
+	ToggleTaskStatus(id int) error
+	DeleteTask(id int) error
+	Close()
+}
+
+type UI interface {
+	Run() error
+	Stop()
+	RefreshList(tasks []models.Task)
+	GetInputText() string
+	ClearInput()
+	FocusList()
+	FocusInput()
+	GetSelectedTaskID() (int, bool)
+	GetItemCount() int
+	ShowError(message string)
+	ShowConfirmation(message string, onConfirm func())
+}
+
+func NewAppController(store Store) *AppController {
 	return &AppController{
 		store: store,
 	}
 }
 
-func (c *AppController) SetUI(ui *UI) {
+func (c *AppController) SetUI(ui UI) {
 	c.ui = ui
 }
 
@@ -95,7 +119,7 @@ func (c *AppController) HandleDeleteTask() {
 			return
 		}
 		c.loadAndDisplayTasks()
-		if c.ui.list.GetItemCount() == 0 {
+		if c.ui.GetItemCount() == 0 {
 			c.ui.FocusInput()
 		}
 	})

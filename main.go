@@ -3,6 +3,10 @@ package main
 import (
 	"log"
 	"os"
+
+	"go-todo/internal/controller"
+	"go-todo/internal/storage"
+	"go-todo/internal/ui"
 )
 
 func main() {
@@ -17,7 +21,7 @@ func main() {
 	log.Println("Application starting...")
 
 	// 1. Init Database Store
-	store, err := NewStore()
+	store, err := storage.NewStore()
 	if err != nil {
 		log.Fatalf("Failed to initialise data store: %v", err)
 	}
@@ -25,19 +29,19 @@ func main() {
 	log.Println("Database store initialised.")
 
 	// 2. Initialise Controller
-	controller := NewAppController(store)
+	appController := controller.NewAppController(store)
 
 	// 3. Initialise UI
-	ui := NewUI(controller)
+	appUI := ui.NewUI(appController)
 	log.Println("UI initialised.")
 
 	// 4. Set UI for the controller
-	controller.SetUI(ui)
+	appController.SetUI(appUI)
 	log.Println("UI set for controller.")
 
 	// 5. Start the application via the controller
 	log.Println("Starting application controller...")
-	if err := controller.Start(); err != nil {
+	if err := appController.Start(); err != nil {
 		log.Fatalf("Application failed to start: %v", err)
 	}
 

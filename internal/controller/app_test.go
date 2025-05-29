@@ -63,13 +63,18 @@ func (mu *MockUI) ShowError(message string) {
 func (mu *MockUI) ShowConfirmation(message string, onConfirm func()) {
 }
 
-func TestHandleAddTask_EmptyDescription(t *testing.T) {
-	// Arrange
+func setupTest(inputText string) (*MockStore, *MockUI, *AppController) {
 	mockStore := &MockStore{}
 	mockUI := &MockUI{}
-	mockUI.inputText = ""
+	mockUI.inputText = inputText
 	controller := NewAppController(mockStore)
 	controller.SetUI(mockUI)
+	return mockStore, mockUI, controller
+}
+
+func TestHandleAddTask_EmptyDescription(t *testing.T) {
+	// Arrange
+	mockStore, mockUI, controller := setupTest("")
 
 	// Act
 	controller.HandleAddTask()
@@ -90,11 +95,7 @@ func TestHandleAddTask_EmptyDescription(t *testing.T) {
 
 func TestHandleAddTask_ValidDescription(t *testing.T) {
 	// Arrange
-	mockStore := &MockStore{}
-	mockUI := &MockUI{}
-	mockUI.inputText = "Valid description"
-	controller := NewAppController(mockStore)
-	controller.SetUI(mockUI)
+	mockStore, mockUI, controller := setupTest("")
 
 	// Act
 	controller.HandleAddTask()

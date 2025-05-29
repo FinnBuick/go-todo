@@ -6,7 +6,8 @@ import (
 )
 
 type MockStore struct {
-	AddTaskCalls int64
+	AddTaskCalls          int64
+	ToggleTaskStatusCalls int
 }
 
 func (ms *MockStore) GetTasks() ([]models.Task, error) {
@@ -17,6 +18,7 @@ func (ms *MockStore) AddTask(description string) (int64, error) {
 	return ms.AddTaskCalls, nil
 }
 func (ms *MockStore) ToggleTaskStatus(id int) error {
+	ms.ToggleTaskStatusCalls++
 	return nil
 }
 func (ms *MockStore) DeleteTask(id int) error {
@@ -25,11 +27,13 @@ func (ms *MockStore) DeleteTask(id int) error {
 func (ms *MockStore) Close() {}
 
 type MockUI struct {
-	GetInputTextCalls int
-	ClearInputCalls   int
-	FocusListCalls    int
-	ShowErrorMsg      string
-	inputText         string
+	GetInputTextCalls      int
+	ClearInputCalls        int
+	FocusListCalls         int
+	GetSelectedTaskIDCalls int
+	SelectedTaskID         int
+	ShowErrorMsg           string
+	inputText              string
 }
 
 func (mu *MockUI) Run() error {
@@ -52,7 +56,8 @@ func (mu *MockUI) FocusList() {
 func (mu *MockUI) FocusInput() {
 }
 func (mu *MockUI) GetSelectedTaskID() (int, bool) {
-	return 1, true
+	mu.GetSelectedTaskIDCalls++
+	return mu.SelectedTaskID, true
 }
 func (mu *MockUI) GetItemCount() int {
 	return 1
@@ -63,10 +68,11 @@ func (mu *MockUI) ShowError(message string) {
 func (mu *MockUI) ShowConfirmation(message string, onConfirm func()) {
 }
 
-func setupTest(inputText string) (*MockStore, *MockUI, *AppController) {
+func setupTest(inputText string, selectedTaskID int) (*MockStore, *MockUI, *AppController) {
 	mockStore := &MockStore{}
 	mockUI := &MockUI{}
 	mockUI.inputText = inputText
+	mockUI.SelectedTaskID = selectedTaskID
 	controller := NewAppController(mockStore)
 	controller.SetUI(mockUI)
 	return mockStore, mockUI, controller
@@ -74,7 +80,7 @@ func setupTest(inputText string) (*MockStore, *MockUI, *AppController) {
 
 func TestHandleAddTask_EmptyDescription(t *testing.T) {
 	// Arrange
-	mockStore, mockUI, controller := setupTest("")
+	mockStore, mockUI, controller := setupTest("", 1)
 
 	// Act
 	controller.HandleAddTask()
@@ -95,7 +101,7 @@ func TestHandleAddTask_EmptyDescription(t *testing.T) {
 
 func TestHandleAddTask_ValidDescription(t *testing.T) {
 	// Arrange
-	mockStore, mockUI, controller := setupTest("")
+	mockStore, mockUI, controller := setupTest("Valid description", 1)
 
 	// Act
 	controller.HandleAddTask()
@@ -119,5 +125,43 @@ func TestHandleAddTask_ValidDescription(t *testing.T) {
 
 	if mockUI.FocusListCalls != 1 {
 		t.Errorf("FocusList should be called once, got=%d", mockUI.FocusListCalls)
+	}
+}
+
+func TestHandleToggleTask_NoExistingTask(t *testing.T) {
+	// Arrange
+	mockStore, mockUI, controller := setupTest("", 0)
+
+	// Act
+	controller.HandleToggleTask()
+
+	// Assert
+	if mockUI.GetSelectedTaskIDCalls != 1 {
+		t.Errorf("GetSelectedTaskID should be called once, got=%d", mockUI.GetSelectedTaskIDCalls)
+	}
+
+	if mockUI.SelectedTaskID != 0 {
+		t.Errorf("SelectedTaskID incorrect, got=%d", mockUI.SelectedTaskID)
+	}
+
+	if mockStore.ToggleTaskStatusCalls != 1 {
+		t.Errorf("ToggleTaskStatus should be called once, got=%d", mockUI.GetSelectedTaskIDCalls)
+	}
+}
+
+func TestHandleToggleTask_ExistingTask(t *testing.T) {
+	// Arrange
+	mockStore, mockUI, controller := setupTest("Description", 1)
+
+	// Act
+	controller.HandleToggleTask()
+
+	// Assert
+	if mockUI.GetSelectedTaskIDCalls != 1 {
+		t.Errorf("GetSelectedTaskID should be called once, got=%d", mockUI.GetSelectedTaskIDCalls)
+	}
+
+	if mockStore.ToggleTaskStatusCalls != 1 {
+		t.Errorf("ToggleTaskStatus should be called once, got=%d", mockUI.GetSelectedTaskIDCalls)
 	}
 }

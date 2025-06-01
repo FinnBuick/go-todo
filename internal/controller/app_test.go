@@ -14,10 +14,10 @@ import (
 func TestMain(m *testing.M) {
 	// Disable logging during tests
 	log.SetOutput(io.Discard)
-	
+
 	// Run tests
 	code := m.Run()
-	
+
 	// Exit with the same code as the tests
 	os.Exit(code)
 }
@@ -68,20 +68,22 @@ func (ms *MockStore) Close() {
 }
 
 type MockUI struct {
-	GetInputTextCalls      int
-	ClearInputCalls        int
-	FocusListCalls         int
-	FocusInputCalls        int
-	GetSelectedTaskIDCalls int
-	GetItemCountCalls      int
-	ShowErrorCalls         int
-	ShowConfirmationCalls  int
-	RefreshListCalls       int
-	StopCalls              int
-	RunCalls               int
+	GetInputTextCalls        int
+	ClearInputCalls          int
+	FocusListCalls           int
+	FocusInputCalls          int
+	GetSelectedTaskIDCalls   int
+	GetSelectedTaskTextCalls int
+	GetItemCountCalls        int
+	ShowErrorCalls           int
+	ShowConfirmationCalls    int
+	RefreshListCalls         int
+	StopCalls                int
+	RunCalls                 int
 
 	// Control behavior
 	SelectedTaskID       int
+	SelectedTaskText     string
 	TaskSelected         bool
 	ItemCount            int
 	ShowErrorMsg         string
@@ -126,6 +128,11 @@ func (mu *MockUI) FocusInput() {
 func (mu *MockUI) GetSelectedTaskID() (int, bool) {
 	mu.GetSelectedTaskIDCalls++
 	return mu.SelectedTaskID, mu.TaskSelected
+}
+
+func (mu *MockUI) GetSelectedTaskText() (string, bool) {
+	mu.GetSelectedTaskTextCalls++
+	return mu.SelectedTaskText, mu.TaskSelected
 }
 
 func (mu *MockUI) GetItemCount() int {

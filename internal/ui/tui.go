@@ -27,10 +27,11 @@ type AppController interface {
 	HandleToggleTask()
 	HandleDeleteTask()
 	HandleQuit()
+	HandleCopyText()
 }
 
 const helpText = `[yellow]Controls:
-[green]Tab:[white] Cycle Focus | [green]Enter (in list):[white] Toggle Done | [green]d (in list):[white] Delete
+[green]Tab:[white] Cycle Focus | [green]Enter (in list):[white] Toggle Done | [green]d (in list):[white] Delete | [green]c (in list):[white] Copy
 [green]Enter (in input):[white] Add Task | [green]Esc (in input):[white] Focus List | [green]q:[white] Quit`
 
 func NewUI(controller AppController) *UI {
@@ -116,6 +117,18 @@ func (ui *UI) GetSelectedTaskID() (int, bool) {
 	return taskID, true
 }
 
+func (ui *UI) GetSelectedTaskText() (string, bool) {
+	if ui.list.GetItemCount() == 0 {
+		return "", false
+	}
+	index := ui.list.GetCurrentItem()
+	if index < 0 {
+		return "", false
+	}
+	mainText, _ := ui.list.GetItemText(index)
+	return mainText, true
+}
+
 func (ui *UI) GetInputText() string {
 	return strings.TrimSpace(ui.input.GetText())
 }
@@ -194,7 +207,9 @@ func (ui *UI) setupKeybindings() {
 					ui.list.SetCurrentItem(index - 1)
 				}
 				return nil
-
+			case 'c':
+				ui.controller.HandleCopyText()
+				return nil
 			}
 		}
 		return event

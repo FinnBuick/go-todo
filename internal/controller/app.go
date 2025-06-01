@@ -3,6 +3,7 @@ package controller
 import (
 	"fmt"
 	"log"
+	"strings"
 
 	"go-todo/internal/models"
 )
@@ -29,6 +30,7 @@ type UI interface {
 	FocusList()
 	FocusInput()
 	GetSelectedTaskID() (int, bool)
+	GetSelectedTaskText() (string, bool)
 	GetItemCount() int
 	ShowError(message string)
 	ShowConfirmation(message string, onConfirm func())
@@ -123,6 +125,20 @@ func (c *AppController) HandleDeleteTask() {
 			c.ui.FocusInput()
 		}
 	})
+}
+
+func (c *AppController) HandleCopyText() {
+	text, selected := c.ui.GetSelectedTaskText()
+	if !selected {
+		log.Println("Copy attempted on invalid or no selection.")
+		return
+	}
+	description := strings.SplitAfter(text, "] ")[1]
+	err := copyToClipboard(description)
+	if err != nil {
+		log.Printf("Error copying to clipboard: %v", err)
+		return
+	}
 }
 
 func (c *AppController) HandleQuit() {

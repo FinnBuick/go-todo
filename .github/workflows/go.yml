@@ -20,8 +20,8 @@ jobs:
         with:
           go-version: "1.23.4"
 
-      - name: Build
-        run: go build -v ./...
+      - name: Build with CI tag
+        run: go build -tags ci .
 
-      - name: Test
-        run: go test -v ./...
+      - name: Test with CI tag
+        run: go test -tags ci ./...

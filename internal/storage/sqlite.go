@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 
 	"go-todo/internal/models"
+
 	_ "github.com/mattn/go-sqlite3" // SQLite driver
 )
 
@@ -52,7 +53,7 @@ func (s *Store) Close() {
 }
 
 func (s *Store) GetTasks() ([]models.Task, error) {
-	rows, err := s.db.Query("SELECT id, description, done FROM tasks ORDER BY id ASC")
+	rows, err := s.db.Query("SELECT id, description, done FROM tasks ORDER BY done ASC, id ASC")
 	if err != nil {
 		return nil, fmt.Errorf("querying tasks: %w", err)
 	}

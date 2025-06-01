@@ -176,7 +176,11 @@ func (ui *UI) setupKeybindings() {
 		case tcell.KeyRune:
 			switch event.Rune() {
 			case 'd':
+				index := ui.list.GetCurrentItem()
 				ui.controller.HandleDeleteTask()
+				if index > 0 {
+					ui.list.SetCurrentItem(index - 1)
+				}
 				return nil
 			case 'j':
 				index := ui.list.GetCurrentItem()

@@ -34,8 +34,17 @@ func NewStore() (*Store, error) {
 	CREATE TABLE IF NOT EXISTS tasks (
 		id INTEGER PRIMARY KEY AUTOINCREMENT,
 		description TEXT NOT NULL,
-		done INTEGER DEFAULT 0 CHECK(done in (0,1))
-	);`
+		done INTEGER DEFAULT 0 CHECK(done in (0,1)),
+		created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+		updated_at TEXT DEFAULT CURRENT_TIMESTAMP
+	);
+
+	CREATE TRIGGER IF NOT EXISTS tasks_updated_at_trigger
+	AFTER UPDATE ON tasks
+	BEGIN
+		UPDATE tasks SET updated_at=CURRENT_TIMESTAMP
+		WHERE tasks.id = NEW.id;
+	END;`
 	if _, err = d.Exec(createTableSQL); err != nil {
 		d.Close()
 		return nil, fmt.Errorf("failed to create tasks table: %w", err)
@@ -47,13 +56,13 @@ func NewStore() (*Store, error) {
 func (s *Store) Close() {
 	if s.db != nil {
 		if err := s.db.Close(); err != nil {
-			log.Printf("Error closing databse: %v\n", err)
+			log.Printf("Error closing database: %v\n", err)
 		}
 	}
 }
 
 func (s *Store) GetTasks() ([]models.Task, error) {
-	rows, err := s.db.Query("SELECT id, description, done FROM tasks ORDER BY done ASC, id ASC")
+	rows, err := s.db.Query("SELECT id, description, done, created_at, updated_at FROM tasks ORDER BY done ASC, updated_at DESC")
 	if err != nil {
 		return nil, fmt.Errorf("querying tasks: %w", err)
 	}
@@ -63,7 +72,7 @@ func (s *Store) GetTasks() ([]models.Task, error) {
 	for rows.Next() {
 		var t models.Task
 		var doneInt int
-		if err := rows.Scan(&t.ID, &t.Description, &doneInt); err != nil {
+		if err := rows.Scan(&t.ID, &t.Description, &doneInt, &t.CreatedAt, &t.UpdatedAt); err != nil {
 			return nil, fmt.Errorf("scanning task row: %w", err)
 		}
 		t.Done = (doneInt == 1)

@@ -24,6 +24,7 @@ type UI struct {
 
 type AppController interface {
 	HandleAddTask()
+	HandleEditTask()
 	HandleToggleTask()
 	HandleDeleteTask()
 	HandleQuit()
@@ -188,6 +189,9 @@ func (ui *UI) setupKeybindings() {
 			return nil
 		case tcell.KeyRune:
 			switch event.Rune() {
+			case 'e':
+				ui.controller.HandleEditTask()
+				return nil
 			case 'd':
 				index := ui.list.GetCurrentItem()
 				ui.controller.HandleDeleteTask()

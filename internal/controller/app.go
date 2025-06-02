@@ -16,6 +16,7 @@ type AppController struct {
 type Store interface {
 	GetTasks() ([]models.Task, error)
 	AddTask(description string) (int64, error)
+	EditTask(description string) error
 	ToggleTaskStatus(id int) error
 	DeleteTask(id int) error
 	Close()
@@ -80,6 +81,32 @@ func (c *AppController) HandleAddTask() {
 	if err != nil {
 		log.Printf("Error adding tasks: %v", err)
 		c.ui.ShowError(fmt.Sprintf("Failed to add task: %v", err))
+		return
+	}
+
+	c.ui.ClearInput()
+	c.loadAndDisplayTasks()
+	c.ui.FocusList()
+}
+
+func (c *AppController) HandleEditTask() {
+
+	taskID, selected := c.ui.GetSelectedTaskID()
+	if !selected {
+		log.Println("Toggle attempted on invalid or no selection.")
+		return
+	}
+
+	description, selected := c.ui.GetSelectedTaskText()
+	if !selected {
+		log.Println("Edit attempted on invalid or no selection")
+		return
+	}
+
+	err := c.store.EditTask(description)
+	if err != nil {
+		log.Printf("Error editing tasks: %v", err)
+		c.ui.ShowError(fmt.Sprintf("Failed to edit task: %v", err))
 		return
 	}
 

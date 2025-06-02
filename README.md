@@ -97,11 +97,11 @@ The application uses a simple SQLite schema:
 
 ```sql
 CREATE TABLE IF NOT EXISTS tasks (
-		id INTEGER PRIMARY KEY AUTOINCREMENT,
-		description TEXT NOT NULL,
-		done INTEGER DEFAULT 0 CHECK(done in (0,1)),
-		created_at TEXT DEFAULT CURRENT_TIMESTAMP,
-		updated_at TEXT DEFAULT CURRENT_TIMESTAMP
+	id INTEGER PRIMARY KEY AUTOINCREMENT,
+	description TEXT NOT NULL,
+	done INTEGER DEFAULT 0 CHECK(done in (0,1)),
+	created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+	updated_at TEXT DEFAULT CURRENT_TIMESTAMP
 );
 ```
 

@@ -95,6 +95,13 @@ func (s *Store) AddTask(description string) (int64, error) {
 	}
 	return id, nil
 }
+func (s *Store) EditTask(id int, description string) error {
+	_, err := s.db.Exec("UPDATE tasks SET description = ? WHERE id = ?", description, id)
+	if err != nil {
+		return fmt.Errorf("updating task: %w", err)
+	}
+	return nil
+}
 
 func (s *Store) ToggleTaskStatus(id int) error {
 	var currentStatus bool
